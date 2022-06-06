@@ -9,6 +9,7 @@ import math as m
 #import chart_studio.plotly as py
 import plotly.graph_objects as go
 import plotly.io as pio
+import plotly.express as px
 pio.renderers.default='browser'
  
 # defining geometry parameters
@@ -148,11 +149,20 @@ for index in indices:
     L_list.append(L[index[1]])
     D_list.append(L[index[0]])
     
-#DLconfigs=mesh[indices]
-#print(DLconfigs
-#Plotting
-'''
-# Plotting Power Density over Time
+## Antidiagonal of Matrices
+P_Cube_Diag=np.fliplr(P_Cube).diagonal()
+P_Cube_Diag=np.transpose(P_Cube_Diag)
+rho_Composite_Diag=np.fliplr(rho_Composite).diagonal()
+rho_Composite_Diag=np.transpose(rho_Composite_Diag)
+m_required_Diag=np.fliplr(m_required).diagonal()
+m_required_Diag=np.transpose(m_required_Diag)
+DD_Diag=np.fliplr(DD).diagonal()
+LL_Diag=np.fliplr(LL).diagonal()
+    
+
+#%%Plotting
+
+# Surface Plot Power Density over Time
 fig1 = go.Figure(data=[go.Surface(x=DD,y=LL,z=P_Cube[0],colorscale=[[0, 'rgb(192,192,192)'], [1, 'rgb(0,100,0)']],cmin=0,cmax=np.max(P_Cube[0]),
     name="Power Density of Tm Composite", contours = {
     "x": {"show": True, "start": 0, "end": 500, "size": 100, "color":"white"},
@@ -172,9 +182,9 @@ sliders = [{"pad": {"b": 10, "t": 60}, "len": 0.9, "x": 0.1, "y": 0, "steps": [{
     for k, f in enumerate(fig1.frames)],}]    
 fig1.update_layout(sliders=sliders)
 fig1.to_html( include_plotlyjs="cdn", full_html=False)
-pio.write_html(fig1, file="Power_Density_Tm_Composite.html", auto_open=True)
+pio.write_html(fig1, file="Power_Density_Tm_Composite_Surf.html", auto_open=True)
 
-# Plotting Density of Each Geometry
+# Surface Plot Density of Each Geometry
 fig2 = go.Figure(data=[go.Surface(x=DD,y=LL,z=rho_Composite,colorscale=[[0, 'rgb(192,192,192)'], [1, 'rgb(100,0,0)']],
     name="Mass Density of Tm Composite", contours = {
     "x": {"show": True, "start": 0, "end": 500, "size": 100, "color":"white"},
@@ -186,9 +196,9 @@ fig2.update_layout(title='Mass Density', autosize=False, width=1000, height=1000
 fig1.update_layout(scene=dict(zaxis=dict(tickvals= [1,2,3,4,5,6,7])))
 fig2.update_traces(colorbar_title_text='[g/cm^3]', selector=dict(type='surface'))
 fig2.to_html( include_plotlyjs="cdn", full_html=False)
-pio.write_html(fig2, file="Mass_Density_Tm_Composite.html", auto_open=True)
+pio.write_html(fig2, file="Mass_Density_Tm_Composite_Surf.html", auto_open=True)
 
-# Plotting Mass of Tm Composite for Equivalent Power Output as Aviation Fuel
+# Surface Plot Mass of Tm Composite for Equivalent Power Output as Aviation Fuel
 axis_ref3=np.full((len(D),len(L)),Max_Fuel)
 fig3 = go.Figure(data=[go.Surface(x=DD,y=LL,z=m_required[0],colorscale=[[0, 'rgb(192,192,192)'], [1, 'rgb(0,0,100)']],cmin=0,cmax=500,
     name="Mass of Tm Composite for Equivalent Power Output as Aviation Fuel", contours = {
@@ -198,7 +208,7 @@ fig3 = go.Figure(data=[go.Surface(x=DD,y=LL,z=m_required[0],colorscale=[[0, 'rgb
     layout=go.Layout(updatemenus=[dict(type="buttons", buttons=[dict(label="Play",method="animate", 
     args=[None, {"frame": {"duration": 1, "redraw": True},"fromcurrent": True, "transition": {"duration": 0}}])])]),
     frames=[go.Frame(data=[go.Surface(z=k)], name=str(i)) for i, k in enumerate(m_required)])
-fig3.update_layout(title='Mass of Tm Composite for Equivalent Power Output as Aviation Fuel', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90), 
+fig3.update_layout(title='Composite Mass Equivalent Required for Aviation Fuel', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90), 
     scene=dict(xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Pellet Distance (L)'), zaxis_title=dict(text = 'Mass Required (kg)'),
     annotations=(dict(showarrow=False,x=350,y=150,z=100,text="Fully Dense Tm Composite",xanchor="center",xshift=0,opacity=0.7),
                  dict(showarrow=False,x=350,y=150,z=387,text="Maximum Mass Possible",xanchor="center",xshift=0,opacity=0.7),),))
@@ -210,8 +220,55 @@ sliders = [{"pad": {"b": 10, "t": 60}, "len": 0.9, "x": 0.1, "y": 0, "steps": [{
     for k, f in enumerate(fig3.frames)],}]    
 fig3.update_layout(sliders=sliders)
 fig3.to_html( include_plotlyjs="cdn", full_html=False)
-pio.write_html(fig3, file="Required_Mass_Tm_Composite.html", auto_open=True)
-'''
+pio.write_html(fig3, file="Required_Mass_Tm_Composite_Surf.html", auto_open=True)
 
+# Scatter Plot Power Density over Time
+fig4 = go.Figure(data=[go.Scatter(x=DD_Diag, y=P_Cube_Diag[0],mode='lines',line_color='rgb(0,100,0)'),],
+    layout=go.Layout(xaxis=dict(range=[0, max(DD_Diag)], autorange=False),
+                     yaxis=dict(range=[0, max(P_Cube_Diag[0])*1.2], autorange=False),
+                     title='Power Density', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90),
+                     xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Power Density (W/cm^3)'),
+                     updatemenus=[dict(type="buttons",buttons=[dict(label="Play",method="animate",
+                     args=[None, {"frame": {"duration": 300, "redraw": True},"fromcurrent": True, "transition": {"duration": 0}}])])]),
+                     frames=[go.Frame(data=[go.Scatter(y=k)], name=str(i)) for i, k in enumerate(P_Cube_Diag)])
+fig4.add_annotation(x=40, y=15,text="Fully Dense Composite",yshift=-120, showarrow=False)
+def frame_args(duration):
+    return {"frame": {"duration": duration},"mode": "immediate","fromcurrent": True,"transition": {"duration": duration, "easing": "linear"},}
+sliders = [{"pad": {"b": 10, "t": 60}, "len": 0.9, "x": 0.1, "y": 0, "steps": [{"args": [[f.name], frame_args(0)], "label":('Week '+str(k)),"method": "animate",}
+    for k, f in enumerate(fig4.frames)],}]    
+fig4.update_layout(sliders=sliders)
+fig4.to_html( include_plotlyjs="cdn", full_html=False)
+pio.write_html(fig4, file="Power_Density_Tm_Composite_Scatter.html", auto_open=True)
+
+# Scatter Plot Mass Density
+fig5 = go.Figure(data=[go.Scatter(x=LL_Diag, y=rho_Composite_Diag,mode='lines',line_color='rgb(100,0,0)'),],
+    layout=go.Layout(xaxis=dict(range=[0, max(DD_Diag)], autorange=False),
+                     yaxis=dict(range=[0, max(rho_Composite_Diag)*1.2], autorange=False),
+                     title='Mass Density', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90),
+                     xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Mass Density (g/cm^3)')))
+fig5.add_annotation(x=40, y=5,text="Fully Dense Composite",yshift=-50, showarrow=False)
+fig5.to_html( include_plotlyjs="cdn", full_html=False)
+pio.write_html(fig5, file="Mass_Density_Tm_Composite_Scatter.html", auto_open=True)
+
+# Scatter Plot Mass Required over Time
+axis_ref6=np.full(len(DD_Diag),Max_Fuel)
+fig6 = go.Figure(data=[go.Scatter(x=DD_Diag, y=m_required_Diag[0],mode='lines',line_color='rgb(0,0,100)'),
+                       go.Scatter(x=DD_Diag,y=axis_ref6,opacity=.7,mode='lines',line_color='black')],
+    layout=go.Layout(xaxis=dict(range=[0, max(DD_Diag)], autorange=False),
+                     yaxis=dict(range=[0, 500], autorange=False),
+                     title='Composite Mass Equivalent Required for Aviation Fuel', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90),
+                     xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Mass Required (kg)'),
+                     updatemenus=[dict(type="buttons",buttons=[dict(label="Play",method="animate",
+                     args=[None, {"frame": {"duration": 300, "redraw": True},"fromcurrent": True, "transition": {"duration": 0}}])])]),
+                     frames=[go.Frame(data=[go.Scatter(y=k)], name=str(i)) for i, k in enumerate(m_required_Diag)])
+fig6.add_annotation(x=60, y=300,text="Fully Dense Composite",yshift=-50, showarrow=False)
+fig6.add_annotation(x=60, y=380,text="Maximum Mass Allowed",yshift=0, showarrow=False)
+def frame_args(duration):
+    return {"frame": {"duration": duration},"mode": "immediate","fromcurrent": True,"transition": {"duration": duration, "easing": "linear"},}
+sliders = [{"pad": {"b": 10, "t": 60}, "len": 0.9, "x": 0.1, "y": 0, "steps": [{"args": [[f.name], frame_args(0)], "label":('Week '+str(k)),"method": "animate",}
+    for k, f in enumerate(fig4.frames)],}]    
+fig6.update_layout(sliders=sliders)
+fig6.to_html( include_plotlyjs="cdn", full_html=False)
+pio.write_html(fig6, file="Required_Mass_Tm_Composite_Scatter.html", auto_open=True)
 
 
