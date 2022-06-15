@@ -121,7 +121,7 @@ P_Fuel=(E_Fuel/Consumption)*Max_Speed/3600 #[J/kg]*[kg/km]*[km/hr]*[hr/s]=[J/s]=
 for i in range(len(t)):
     P_Cube[i]=(A1_170Tm_t[i]*(BetaFrac1_170Tm*BetaEng1_170Tm+BetaFrac2_170Tm*BetaEng2_170Tm)+A1_171Tm_t[i]*(BetaFrac_171Tm*BetaEng_171Tm))/MeVtoJ # Power Density [W/cm^3]
     Rad_Int[i]=(A1_170Tm_t[i]*(BetaFrac2_170Tm*GammaEng2_170Tm+ECFrac_170Tm*ECEng_170Tm))/MeVtoJ # Inidial Radiation Density [W/cm^3] from EC and beta production. No bremstrahlung
-    m_required[i]=(P_Fuel*rho_Composite/(P_Cube[i]*1000)) # mass required to provide same energy to Predator as Avaition Fuel or P_Fuel [kg]
+    m_required[i]=(1.3*P_Fuel*rho_Composite/(P_Cube[i]*1000)) # mass required to provide same energy to Predator as Avaition Fuel or P_Fuel [kg]
 for i in range(len(t)):
     for j in range(len(LL[0])):
         for k in range(len(DD[0])):
@@ -141,14 +141,20 @@ for i in range(len(t)):
                 m_required[i,j,k]=m_required[i,0,0]                             
 
 #%% Identifiying Possible Geometries of 
-m=np.tril(m_required[0],k=0)
+m=np.tril(m_required[7],k=0)
 indices=np.transpose(np.where(np.logical_and(m>0, m<=Max_Fuel)))
 L_list = []
 D_list = []
+Viable_Geom=np.zeros((len(D),len(L)))
+Viable_Geom[indices[:,0],indices[:,1]]=1
 for index in indices:
     L_list.append(L[index[1]])
     D_list.append(L[index[0]])
     
+Rad_Release=np.zeros((len(D),len(L)))
+Rad_Release[indices[:,0],indices[:,1]]=abs(np.log(indices[:,0])/1000+np.log(indices[:,1])/1000)
+    
+   
 ## Antidiagonal of Matrices
 P_Cube_Diag=np.fliplr(P_Cube).diagonal()
 P_Cube_Diag=np.transpose(P_Cube_Diag)
@@ -271,4 +277,20 @@ fig6.update_layout(sliders=sliders)
 fig6.to_html( include_plotlyjs="cdn", full_html=False)
 pio.write_html(fig6, file="Required_Mass_Tm_Composite_Scatter.html", auto_open=True)
 
+# Viable Geometry Surface Plot
+fig7 = go.Figure(data=[go.Surface(x=DD,y=LL,z=Viable_Geom,colorscale=[[0, 'rgb(192,192,192)'], [1, 'rgb(0,0,0)']],
+    name="Viable Composite Geometry")],)
+fig7.update_layout(title='Viable Geometry', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90), scene=dict(
+    xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Pellet Distance (L)'),),)
+fig7.update_layout(scene=dict(zaxis=dict(tickvals= [])))
+fig7.to_html( include_plotlyjs="cdn", full_html=False)
+pio.write_html(fig7, file="Mass_Density_Tm_Composite_Surf.html", auto_open=True)
 
+# Radiation Release Surface Plot
+fig8 = go.Figure(data=[go.Surface(x=DD,y=LL,z=Rad_Release,colorscale=[[0, 'rgb(192,192,192)'], [1, 'rgb(255,255,40)']],
+    name="Radiation Release")],)
+fig8.update_layout(title='Radiation Release', autosize=False, width=1000, height=1000, margin=dict(l=65, r=50, b=65, t=90), scene=dict(
+    xaxis_title=dict(text = 'Pellet Diameter (D)'), yaxis_title=dict(text = 'Pellet Distance (L)'),),)
+fig8.update_layout(scene=dict(zaxis=dict(tickvals= [])))
+fig8.to_html( include_plotlyjs="cdn", full_html=False)
+pio.write_html(fig8, file="Mass_Density_Tm_Composite_Surf.html", auto_open=True)
